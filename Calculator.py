@@ -192,7 +192,10 @@ class WeightedTree:
             node.leftChild = root
             node.parent = root.parent
             if root.parent is not None:
-                root.parent.leftChild = node
+               if root.parent.leftChild is root:
+                   root.parent.leftChild = node
+               else:
+                   root.parent.rightChild = node
             return node
         if root.leftChild is not None and root.rightChild is None:
             root.rightChild = node
@@ -203,7 +206,10 @@ class WeightedTree:
             node.leftChild = root
             node.parent = root.parent
             if root.parent is not None:
-                root.parent.leftChild = node
+                if root.parent.leftChild is root:
+                   root.parent.leftChild = node
+                else:
+                   root.parent.rightChild = node
             return node
         if (root.parent is None and root.rightChild is not None) and root < node:
             root.parent = node
