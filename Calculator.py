@@ -1,8 +1,9 @@
 from __future__ import annotations
+import re
 
 class Node:
     
-    def __init__(self, value: int | str, weight: int):
+    def __init__(self, value, weight: int):
         self.parent: Node | None = None
         self.leftChild: Node | None = None
         self.rightChild: Node | None = None
@@ -66,25 +67,26 @@ class Node:
         self._bf = number
         
         
-class WeightedTree:
+class ExpressionTree:
     
     def __init__(self):
         self.root: Node | None = None
+        self.current: Node| None = None
         self.nodes = {} 
         
     @staticmethod
     def height(node: "Node") -> int:
         if node is None:
             return 0
-        return 1 + max(WeightedTree.height(node.leftChild), WeightedTree.height(node.rightChild))
+        return 1 + max(ExpressionTree.height(node.leftChild), ExpressionTree.height(node.rightChild))
     
     @staticmethod
     def updateBalance(node: "Node"):
         if node is None:
             return
-        node.bf = WeightedTree.height(node.leftChild) - WeightedTree.height(node.rightChild)
-        WeightedTree.updateBalance(node.leftChild)
-        WeightedTree.updateBalance(node.rightChild)
+        node.bf = ExpressionTree.height(node.leftChild) - ExpressionTree.height(node.rightChild)
+        ExpressionTree.updateBalance(node.leftChild)
+        ExpressionTree.updateBalance(node.rightChild)
     
     @staticmethod
     def left_rotate(x: "Node", y: "Node"):
@@ -126,7 +128,7 @@ class WeightedTree:
                 node.parent = root
                 return root
             else:
-                root.leftChild = WeightedTree.insert(root.leftChild, node)
+                root.leftChild = ExpressionTree.insert(root.leftChild, node)
                 return root
         if root <= node:
             if root.rightChild is None:
@@ -134,7 +136,7 @@ class WeightedTree:
                 node.parent = root
                 return root
             else:
-                root.rightChild = WeightedTree.insert(root.rightChild, node)
+                root.rightChild = ExpressionTree.insert(root.rightChild, node)
                 return root
         return None
     
@@ -144,110 +146,72 @@ class WeightedTree:
                 return
             if node.bf > 1:
                 if node.leftChild is not None and node.leftChild.bf >= 1:
-                    WeightedTree.right_rotate(node, node.leftChild)
+                    ExpressionTree.right_rotate(node, node.leftChild)
                 elif node.leftChild is not None and node.leftChild.bf <= -1:
-                    WeightedTree.left_rotate(node.leftChild, node.leftChild.rightChild)
-                    WeightedTree.right_rotate(node, node.leftChild)
+                    ExpressionTree.left_rotate(node.leftChild, node.leftChild.rightChild)
+                    ExpressionTree.right_rotate(node, node.leftChild)
             elif node.bf < -1:
                 if node.rightChild is not None and node.rightChild.bf <= -1:
-                    WeightedTree.left_rotate(node, node.rightChild)
+                    ExpressionTree.left_rotate(node, node.rightChild)
                 elif node.rightChild is not None and node.rightChild.bf >= 1:
-                    WeightedTree.right_rotate(node.rightChild, node.rightChild.leftChild)
-                    WeightedTree.left_rotate(node, node.rightChild)
+                    ExpressionTree.right_rotate(node.rightChild, node.rightChild.leftChild)
+                    ExpressionTree.left_rotate(node, node.rightChild)
             balance_node(node.leftChild)
             balance_node(node.rightChild)
-            WeightedTree.updateBalance(node)
+            ExpressionTree.updateBalance(node)
         balance_node(self.root)
-        
-    def append(self, op):
-        if op == '+' or op == '-':
-            self.root = WeightedTree.insert(self.root, Node(op, 1))
-        elif op == "*" or op == "/":
-            self.root = WeightedTree.insert(self.root, Node(op, 2))
-        elif op == "^":
-            self.root = WeightedTree.insert(self.root, Node(op, 3))
-        else:
-            self.root = WeightedTree.insert(self.root, Node(op, 0))
-        WeightedTree.updateBalance(self.root)
-        self.balance()
-        return
     
     def appendToExp(self, op):
-        if op == '+' or op == '-':
-            self.root = WeightedTree.infix(self.root, Node(op, 1))
-        elif op == "*" or op == "/":
-            self.root = WeightedTree.infix(self.root, Node(op, 2))
+        if op == '+':
+            self.root = ExpressionTree.infix(self.root, Node(op, 1))
+        elif op == '-':
+            self.root = ExpressionTree.infix(self.root, Node(op, 2))
+        elif op == "*": 
+            self.root = ExpressionTree.infix(self.root, Node(op, 3))
+        elif op == "/":
+            self.root = ExpressionTree.infix(self.root, Node(op, 4))
         elif op == "^":
-            self.root = WeightedTree.infix(self.root, Node(op, 3))
-        else:
-            self.root = WeightedTree.infix(self.root, Node(op, 0))
+            self.root = ExpressionTree.infix(self.root, Node(op, 5))
+        elif op.isdigit():
+            self.root = ExpressionTree.infix(self.root, Node(int(op), 6))
         return
     
     @staticmethod
     def infix(root: "Node", node: "Node") -> "Node":
         if root is None:
             return node
-        if root.parent is None and root.leftChild is None:
-            root.parent = node
+        if root >= node:
             node.leftChild = root
-            node.parent = root.parent
-            if root.parent is not None:
-               if root.parent.leftChild is root:
-                   root.parent.leftChild = node
-               else:
-                   root.parent.rightChild = node
+            if root.weight == 6:
+                root.parent = node
+            else:
+                root.parent = ExpressionTree.infix(root.parent, node)
             return node
-        if root.leftChild is not None and root.rightChild is None:
-            root.rightChild = node
+        if root < node:
             node.parent = root
+            root.rightChild = ExpressionTree.infix(root.rightChild, node)
             return root
-        if (root.parent is None and root.rightChild is not None) and root >= node:
-            root.parent = node
-            node.leftChild = root
-            node.parent = root.parent
-            if root.parent is not None:
-                if root.parent.leftChild is root:
-                   root.parent.leftChild = node
-                else:
-                   root.parent.rightChild = node
-            return node
-        if (root.parent is None and root.rightChild is not None) and root < node:
-            root.parent = node
-            node.leftChild = root
-            return WeightedTree.infix(root.rightChild)
         return None
     
-    def pop(self) -> str | int | None:
-        if self.root is None:
-            return None
-        def post_order_traversal(node: "Node") -> Node:
-            if node.leftChild is not None:
-                return post_order_traversal(node.leftChild)
-            if node.rightChild is not None:
-                return post_order_traversal(node.rightChild)
-            return node
-        temp = post_order_traversal(self.root)
-        if temp.parent is not None:
-            if temp.parent.leftChild is temp:
-                temp.parent.leftChild = temp.rightChild
-                if temp.rightChild is not None:
-                    temp.rightChild.parent = temp.parent
+    def evaluateExp(self) -> float:
+        def evaluate(node: "Node") -> float:
+            if node is None:
+                return 0
+            if node.weight == 1:
+                return evaluate(node.leftChild) + evaluate(node.rightChild)
+            elif node.weight == 2:
+                return evaluate(node.leftChild) - evaluate(node.rightChild)
+            elif node.weight == 3:
+                return evaluate(node.leftChild) * evaluate(node.rightChild)
+            elif node.weight == 4:
+                return evaluate(node.leftChild) / evaluate(node.rightChild)
             else:
-                temp.parent.rightChild = temp.rightChild
-                if temp.rightChild is not None:
-                    temp.rightChild.parent = temp.parent
-        else:
-            self.root = temp.rightChild
-            if temp.rightChild is not None:
-                temp.rightChild.parent = None
-        return temp.value
+                return node.value
+        return evaluate(self.root)
     
-    def hasNext(self):
-        return self.root is not None
-    
-loc = "1+1*8"
-e = WeightedTree()
-for s in loc:
+loc = input("Write out an expression: ")
+tokens = re.findall(r'\d+|[+\-*/^]', loc)
+e = ExpressionTree()
+for s in tokens:
     e.appendToExp(s)
-while e.hasNext():
-    print(e.pop)
+print(f"Answer = {e.evaluateExp()}")
