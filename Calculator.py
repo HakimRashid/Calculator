@@ -9,6 +9,7 @@ class Node:
         self.rightChild: Node | None = None
         self.value = value
         self.weight = weight
+        self.coeff: int = 0
         self.bf: int = 0
         
     def __eq__(self, node: "Node"):
@@ -66,13 +67,21 @@ class Node:
     def bf(self, number: "int"):
         self._bf = number
         
+    @property
+    def coeff(self) -> int:
+        return self._coeff
+        
+    @coeff.setter
+    def coeff(self, number: "int"):
+        self._coeff = number
+        
         
 class ExpressionTree:
     
     def __init__(self):
         self.root: Node | None = None
         self.current: Node| None = None
-        self.nodes = {} 
+        self.nodes = {}
         
     @staticmethod
     def height(node: "Node") -> int:
@@ -161,7 +170,7 @@ class ExpressionTree:
             ExpressionTree.updateBalance(node)
         balance_node(self.root)
     
-    def appendToExp(self, op):
+    def append(self, op):
         if op == '+':
             self.root = ExpressionTree.infix(self.root, Node(op, 1))
         elif op == '-':
@@ -174,7 +183,6 @@ class ExpressionTree:
             self.root = ExpressionTree.infix(self.root, Node(op, 5))
         elif op.isdigit():
             self.root = ExpressionTree.infix(self.root, Node(int(op), 6))
-        return
     
     @staticmethod
     def infix(root: "Node", node: "Node") -> "Node":
@@ -193,6 +201,7 @@ class ExpressionTree:
             return root
         return None
     
+    
     def evaluateExp(self) -> float:
         def evaluate(node: "Node") -> float:
             if node is None:
@@ -209,9 +218,56 @@ class ExpressionTree:
                 return node.value
         return evaluate(self.root)
     
-loc = input("Write out an expression: ")
-tokens = re.findall(r'\d+|[+\-*/^]', loc)
-e = ExpressionTree()
-for s in tokens:
-    e.appendToExp(s)
-print(f"Answer = {e.evaluateExp()}")
+def precedence(op):
+    if op == '+' or op == '-':
+        return 1
+    if op == '*' or op == '/':
+        return 2
+    if op == '^':
+        return 3
+    return 0
+
+def evaluate_postfix(tokens) -> float:
+    stack = []
+    for token in tokens:
+        if token.isdigit():
+            stack.append(float(token))
+        else:
+            b = stack.pop()
+            a = stack.pop()
+            if token == '+':
+                stack.append(a + b)
+            elif token == '-':
+                stack.append(a - b)
+            elif token == '*':
+                stack.append(a * b)
+            elif token == '/':
+                stack.append(a / b)
+            elif token == '^':
+                stack.append(a ** b)
+    return stack[0]
+        
+def infix_to_postfix(tokens):
+    output = []
+    stack = []
+    for token in tokens:
+        if token.isdigit():
+            output.append(token)
+        elif token == '(':
+            stack.append(token)
+        elif token == ')':
+            while stack and stack[-1] != '(':
+                output.append(stack.pop())
+            stack.pop()  # Remove '('
+        else:  # operator
+            while stack and precedence(stack[-1]) >= precedence(token):
+                output.append(stack.pop())
+            stack.append(token)
+    while stack:
+        output.append(stack.pop())
+    return output
+
+oc = input("Write out an expression: ")
+tokens = re.findall(r'\d+|[+\-*/^()]', oc)
+postfix_tokens = infix_to_postfix(tokens)
+print(f"Answer = {evaluate_postfix(postfix_tokens)}")
