@@ -16,8 +16,10 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(774, 542)
+        self.state = False
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        self.centralwidget.setStyleSheet("background-color: #808080")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.horizontalLayoutWidget.setGeometry(QtCore.QRect(2, 110, 771, 381))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
@@ -373,6 +375,12 @@ class Ui_MainWindow(object):
         self.label.setText("")
         self.label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
+        self.label.setStyleSheet("color: white;")
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setFamily("monospaced")
+        font.setPointSize(24)
+        self.label.setFont(font)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 774, 22))
@@ -387,8 +395,8 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.pushButton_41.setText(_translate("MainWindow", "Rad"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Calculator"))
+        self.pushButton_41.setText(_translate("MainWindow", "⇅"))
         self.pushButton_42.setText(_translate("MainWindow", "sin"))
         self.pushButton_43.setText(_translate("MainWindow", "sinh"))
         self.pushButton_44.setText(_translate("MainWindow", "arcsin"))
@@ -397,7 +405,7 @@ class Ui_MainWindow(object):
         self.pushButton_37.setText(_translate("MainWindow", "cos"))
         self.pushButton_38.setText(_translate("MainWindow", "cosh"))
         self.pushButton_39.setText(_translate("MainWindow", "arccos"))
-        self.pushButton_40.setText(_translate("MainWindow", "!"))
+        self.pushButton_40.setText(_translate("MainWindow", "𝝿"))
         self.pushButton_31.setText(_translate("MainWindow", "AC"))
         self.pushButton_32.setText(_translate("MainWindow", "tan"))
         self.pushButton_33.setText(_translate("MainWindow", "tanh"))
@@ -407,7 +415,7 @@ class Ui_MainWindow(object):
         self.pushButton_27.setText(_translate("MainWindow", "7"))
         self.pushButton_28.setText(_translate("MainWindow", "4"))
         self.pushButton_29.setText(_translate("MainWindow", "1"))
-        self.pushButton_30.setText(_translate("MainWindow", "𝝿"))
+        self.pushButton_30.setText(_translate("MainWindow", "⌫"))
         self.pushButton_21.setText(_translate("MainWindow", ")"))
         self.pushButton_22.setText(_translate("MainWindow", "8"))
         self.pushButton_23.setText(_translate("MainWindow", "5"))
@@ -442,7 +450,7 @@ class Ui_MainWindow(object):
         self.pushButton_27.clicked.connect(lambda _, b=self.pushButton_27: self.button_press(b))
         self.pushButton_28.clicked.connect(lambda _, b=self.pushButton_28: self.button_press(b))
         self.pushButton_29.clicked.connect(lambda _, b=self.pushButton_29: self.button_press(b))
-        self.pushButton_30.clicked.connect(lambda _, b=self.pushButton_30: self.button_press(b))
+        self.pushButton_30.clicked.connect(self.back_space)
         self.pushButton_31.clicked.connect(lambda _, b=self.pushButton_31: self.button_press(b))
         self.pushButton_32.clicked.connect(lambda _, b=self.pushButton_32: self.button_press(b))
         self.pushButton_33.clicked.connect(lambda _, b=self.pushButton_33: self.button_press(b))
@@ -453,7 +461,7 @@ class Ui_MainWindow(object):
         self.pushButton_38.clicked.connect(lambda _, b=self.pushButton_38: self.button_press(b))
         self.pushButton_39.clicked.connect(lambda _, b=self.pushButton_39: self.button_press(b))
         self.pushButton_40.clicked.connect(lambda _, b=self.pushButton_40: self.button_press(b))
-        self.pushButton_41.clicked.connect(lambda _, b=self.pushButton_41: self.button_press(b))
+        self.pushButton_41.clicked.connect(self.switch)
         self.pushButton_42.clicked.connect(lambda _, b=self.pushButton_42: self.button_press(b))
         self.pushButton_43.clicked.connect(lambda _, b=self.pushButton_43: self.button_press(b))
         self.pushButton_44.clicked.connect(lambda _, b=self.pushButton_44: self.button_press(b))
@@ -465,12 +473,44 @@ class Ui_MainWindow(object):
         if text == '=':
             current_text = current_text.replace('÷', '/')
             current_text = current_text.replace('×', '*')
-            print(current_text)
-            self.label.setText(str(evaluate_expression(current_text)))
+            self.label.setText(str(evaluate_expression(current_text, False)))
         elif text == 'AC':
             self.label.setText("")
         else:
             self.label.setText(current_text + text)
+            
+    def back_space(self):
+        current_text = self.label.text()
+        self.label.setText(current_text[:len(current_text) - 1])
+            
+    def switch(self):
+        self.state = not self.state
+        if self.state:
+            self.pushButton_42.setText('arcsinh')
+            self.pushButton_37.setText('arccosh')
+            self.pushButton_32.setText('arctanh')
+            self.pushButton_36.setText(',')
+            self.pushButton_43.setText('mod')
+            self.pushButton_38.setText('abs')
+            self.pushButton_33.setText('exp')
+            self.pushButton_44.setText('!')
+            self.pushButton_39.setText('sqrt')
+            self.pushButton_34.setText('cbrt')
+        else:
+            self.pushButton_32.setText("tan")
+            self.pushButton_33.setText("tanh")
+            self.pushButton_34.setText("arctan")
+            self.pushButton_37.setText("cos")
+            self.pushButton_38.setText("cosh")
+            self.pushButton_39.setText("arccos")
+            self.pushButton_36.setText('log')
+            self.pushButton_42.setText("sin")
+            self.pushButton_43.setText("sinh")
+            self.pushButton_44.setText("arcsin")
+            self.pushButton_36.setText("log")
+            
+            
+        
 
 def main():
     import sys

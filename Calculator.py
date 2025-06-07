@@ -1,6 +1,7 @@
 from __future__ import annotations
 import math
-import re       
+import re
+import sys       
 
 
 def precedence(op):
@@ -201,8 +202,12 @@ def evaluate_expression(text, deg: "bool") -> float:
     return evaluate_postfix(postfix_tokens, deg)
 
 def main():
-    oc = input("Write out an expression: ")
-    print(f"Answer = {evaluate_expression(oc, False)}")
+    if len(sys.argv) > 1:
+        oc = "".join(sys.argv[1:])
+        print(f"Answer = {evaluate_expression(oc, False)}")
+    else:
+        oc = input("Write out an expression: ")
+        print(f"Answer = {evaluate_expression(oc, False)}")
 
 if __name__ == '__main__':
     main()
