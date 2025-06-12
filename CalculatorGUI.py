@@ -11,9 +11,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from CircularButton import CircularButton
 from Calculator import evaluate_expression
+import os
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        icon_path = os.path.join(os.path.dirname(__file__), "AppIcon.png")
+        MainWindow.setWindowIcon(QtGui.QIcon(icon_path))
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(774, 542)
         self.state = False
